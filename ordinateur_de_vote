@@ -37,7 +37,7 @@ class election :
                 self.urne.append(vote[k][1])
                 r.shuffle(self.urne) #O(len(self.urne))
         #On a pris en compte tout les votes
-        #ON NE PEUT PAS RETRACER QUI A VOTER QUOI
+        #ON NE PEUT PAS RETRACER QUI A VOTE QUOI
         #Il faut compter les votes
         synth = [[x, 0] for x in self.c]
         for k in self.urne :
@@ -112,3 +112,36 @@ def dicho_classique(e, l) :
 
 def tri_fusion (l) :
     #l est une liste de doublet, on veut la trier selon la 1ere composante
+    def fusion (l1, l2) :
+        #l1 et l2 sont des listes de doublets /!\
+        n1 = len(l1)
+        n2 = len(l2)
+        res = [0] * (n1 + n2)
+        i = 0
+        j1 = 0
+        j2 = 0
+        while j1 < n1 and j2 < n2 :
+            if l1[j1][0] < l2[j2][0] :
+                res[i] = l1[j1]
+                j1 += 1
+            else :
+                res[i] = l2[j2]
+                j2 += 1
+            i += 1
+        if j1 == n1 :
+            for k in range (j2, n2) :
+                res[i] = l2[k]
+                i += 1
+        else :
+            for k in range (j1, n1) :
+                res[i] = l1[k]
+                i += 1
+        return res
+    n = len(l)
+    l1 = [l[x] for x in range (n//2)]
+    l2 = [l[x] for x in range (n//2, n)]
+    if len(l1) > 1 :
+        l1 = tri_fusion(l1)
+    if len(l2) > 1 :
+        l2 = tri_fusion(l2)
+    return fusion(l1, l2)
