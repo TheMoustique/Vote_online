@@ -1,0 +1,114 @@
+import random as r
+
+class election :
+
+    def __init__ (self, l_candidats, l_id) :
+        self.urne = [] #on met ici que les votes(pas d'id)
+        self.c = l_candidats
+        self.ide = l_id
+        self.a_vote = [] #on se sert de ceci pour stocker qui a voté (but de traçabilité)
+
+    #On considère les votes comme une liste de doublet [id, vote]
+
+    def recherche(self, e) :
+        #l est une liste de doublet, dont la première composante est triée -> on fait une recherche dichotomique ( O(len(l)) )
+        #on suppose que l'element recherché est présent dans la liste
+        def aux(liste, element, a, b) :
+            if a == b and liste[a][1] == element :
+                return liste[a][1]
+            m = (a+b) // 2
+            if liste[m][0] == element :
+                return liste[m][1]
+            elif liste[m][0] > element :
+                return aux(liste, element, a, m-1)
+            else :
+                return aux(liste, element, m+1, b)
+        if self.a_vote == [] :
+            return False
+        else :
+            return aux(self.a_vote, e, 0, len(self.a_vote)-1)
+
+
+##Ce vote ne permet aucune traçabilité mais sécurité "maximale"
+    def vote1(self, vote) :
+        for k in range (len(vote)) : #O(len(vote))
+            if appartient(vote[k][0], self.ide) :
+                #On comptabilise le vote
+                self.urne.append(vote[k][1])
+                r.shuffle(self.urne) #O(len(self.urne))
+        #On a pris en compte tout les votes
+        #ON NE PEUT PAS RETRACER QUI A VOTER QUOI
+        #Il faut compter les votes
+        synth = [[x, 0] for x in self.c]
+        for k in self.urne :
+            for i in synth :
+                if k == i[0] :
+                    i[1] += 1
+        #Plus qu'une recherche de maximum classique :
+        gagnant = [synth[0][0]]
+        max_voix = synth[0][1]
+        for k in synth :
+            if k[1] > max_voix :
+                max_voix = k[1]
+                gagnant = [k[0]]
+            elif k[1] == max_voix :
+                gagnant.append(k[1])
+        return gagnant
+
+##Ce vote permet au votant de vérifier le vote qu'il a mis
+    def vote2(self, vote) :
+        #il faut définir une solution pour la traçabilité.
+        for k in range (len(vote)) : #O(len(vote))
+            if appartient_trace(vote[k][0], self.ide) :
+                self.urne.append(vote[k][1])
+                self.a_vote.append(vote[k])
+        self.a_vote = tri_fus(self.a_vote)
+        synth = [[x, 0] for x in self.c]
+        for k in self.urne :
+            for i in synth :
+                if k == i[0] :
+                    i[1] += 1
+        #Plus qu'une recherche de maximum classique :
+        gagnant = [synth[0][0]]
+        max_voix = synth[0][1]
+        for k in synth :
+            if k[1] > max_voix :
+                max_voix = k[1]
+                gagnant = [k[0]]
+            elif k[1] == max_voix :
+                gagnant.append(k[1])
+        self.a_vote = tri_fusion(self.a_vote)
+        return gagnant
+
+def appartient(e, l) :
+    for k in range(len(l)) :
+        if l[k] == e :
+            l[k], l[len(l)-1] = l[len(l)-1], l[k]
+            l.pop()
+            return True
+    return False
+
+def appartient_trace (e, l) :
+    for k in range (len(l)) :
+        if l[k] == e :
+            return True
+    return False
+
+def dicho_classique(e, l) :
+    def aux(liste, element, a, b) :
+        if a == b :
+            return liste[a] == element
+        m = (a+b)//2
+        if liste[m] == element :
+            return True
+        elif liste[m] > element :
+            return aux(liste, element, a, m-1)
+        else :
+            return aux(liste, element, m+1, b)
+    if l == [] :
+        return False
+    else :
+        return aux(l, e, 0, len(l)-1)
+
+def tri_fusion (l) :
+    #l est une liste de doublet, on veut la trier selon la 1ere composante
